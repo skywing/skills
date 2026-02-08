@@ -23,13 +23,15 @@ Pre-built scenario templates for common banking cyber and operational risks. Use
 - With advanced zero-trust architecture: 1-3%
 
 **Loss Magnitude Ranges**
-| Loss Form | Min | Mode | Max |
-|-----------|-----|------|-----|
-| Productivity (downtime) | $2M | $10M | $50M |
-| Response costs | $500K | $2M | $10M |
-| Restoration | $1M | $5M | $20M |
-| Regulatory (if reportable) | $1M | $10M | $50M |
-| Reputation | $500K | $5M | $25M |
+| Loss Form | Distribution | Parameters |
+|-----------|-------------|------------|
+| Productivity (downtime) | PERT | Min $2M, Mode $10M, Max $50M |
+| Response costs | PERT | Min $500K, Mode $2M, Max $10M |
+| Restoration | PERT | Min $1M, Mode $5M, Max $20M |
+| Regulatory (if reportable) | Lognormal | p10: $1M, p90: $50M |
+| Reputation | PERT | Min $500K, Mode $5M, Max $25M |
+
+*Lognormal example (Regulatory):* Use `{"params": {"p10": 1000000, "p90": 50000000}}` in JSON config. The engine back-solves the underlying normal distribution from the 10th/90th percentile values. Lognormal is well-suited for regulatory fines where extreme outliers are plausible.
 
 ### Key Considerations
 - Business interruption insurance coverage

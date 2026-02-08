@@ -184,8 +184,10 @@ LEF = TEF × Vulnerability
 
 ### 4.1 Simulation Parameters
 - **Iterations:** 10,000
+- **Event Modeling:** Compound Poisson process (event counts drawn from Poisson distribution)
 - **LEF Distribution:** PERT (min, mode, max)
-- **LM Distribution:** PERT (min, mode, max)
+- **LM Distribution:** PERT (min, mode, max) or Lognormal (p10, p90)
+- **Loss Correlation:** [0.0–1.0, shared severity factor]
 - **Random Seed:** [For reproducibility]
 
 ### 4.2 Annual Loss Exposure Distribution
@@ -201,6 +203,9 @@ LEF = TEF × Vulnerability
 | 99th | $[X]M |
 
 **Expected Annual Loss (Mean):** $[X.X]M
+**P(Zero Loss Year):** [X.X]%
+**Mean Event Count:** [X.X] events/year
+**Conditional Mean (given ≥1 event):** $[X.X]M
 
 ### 4.3 Loss Exceedance Curve
 
@@ -212,10 +217,10 @@ LEF = TEF × Vulnerability
 
 [Insert Tornado Diagram visualization]
 
-**Key Drivers (by influence on variance):**
-1. [Input 1] - [X]% of variance
-2. [Input 2] - [X]% of variance
-3. [Input 3] - [X]% of variance
+**Key Drivers (by Rank Correlation — Spearman):**
+1. [Input 1] - [X.XX] rank correlation
+2. [Input 2] - [X.XX] rank correlation
+3. [Input 3] - [X.XX] rank correlation
 
 ---
 

@@ -151,21 +151,32 @@ See `references/loss-benchmarks.md` for detailed industry data.
 
 ## Phase 4: Monte Carlo Simulation
 
-Generate simulation parameters for 10,000 iterations:
+Generate simulation parameters for 10,000 iterations using a **compound Poisson process**:
 
 ```
-LEF Distribution: PERT(min, mode, max) or Lognormal(μ, σ)
-LM Distribution: PERT(min, mode, max) or Lognormal(μ, σ)
-
-Annual Loss Exposure = LEF × LM (simulated)
+LEF Distribution: PERT(min, mode, max) → per-iteration LEF rate
+Event Counts: Poisson(LEF) → number of loss events per simulated year
+LM Distribution: PERT(min, mode, max) or Lognormal(p10, p90)
+ALE: Sum of independently sampled loss magnitudes across all events in each year
 ```
+
+**Distribution choices:**
+- **PERT**: Specified via minimum, mode, maximum. Good when analysts think in three-point estimates.
+- **Lognormal**: Specified via 10th and 90th percentile values (`p10`, `p90`). Better for heavy-tailed loss magnitudes where extreme outcomes are plausible. The engine back-solves for the underlying normal parameters automatically.
+
+**Correlation modeling:**
+- Loss forms within the same event can be correlated using a shared severity factor model (configurable via `loss_correlation`, default 0.0). When enabled, a shared uniform draw blends with independent draws per loss form to produce correlated quantile-based samples.
+- Secondary loss probability can optionally scale with primary loss severity (`conditional_secondary: true`), so larger primary losses increase the chance of regulatory/reputation impacts.
 
 Present results:
 
 - **Loss Exceedance Curve**: Probability of exceeding loss thresholds
 - **VaR (95th percentile)**: "There is a 5% chance annual losses exceed $X"
 - **Expected Annual Loss (EAL)**: Mean of distribution
-- **Key Driver Analysis**: Which inputs most influence variance
+- **P(Zero Loss Year)**: Probability of no loss events occurring
+- **Mean Event Count**: Average number of loss events per year
+- **Conditional ALE**: Mean/VaR statistics only for years with at least one event
+- **Key Driver Analysis**: Spearman rank correlation identifies which inputs most influence variance (robust to non-linear relationships in the FAIR model)
 
 Use `scripts/fair_simulation.py` to execute simulation and generate visualizations.
 
