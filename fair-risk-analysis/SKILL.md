@@ -1,6 +1,10 @@
 ---
 name: fair-risk-analysis
-description: Interactive FAIR (Factor Analysis of Information Risk) risk scenario analysis for banking and financial services. Guide analysts through probabilistic risk quantification using Monte Carlo simulation, providing expert-suggested inputs based on industry benchmarks. Use when users request risk scenario analysis, cyber risk quantification, operational risk assessment, FAIR analysis, loss event frequency estimation, or risk case documentation for banking/financial institutions.
+description: Interactive FAIR (Factor Analysis of Information Risk) risk scenario analysis for banking and financial services. Guides analysts through probabilistic risk quantification using Monte Carlo simulation, with expert-suggested inputs based on industry benchmarks. Use this skill whenever a user mentions risk analysis, cyber risk, loss quantification, FAIR, operational risk, threat modeling, risk scenarios, or asks to estimate or quantify any banking or financial risk — even if they don't explicitly say "FAIR" or "Monte Carlo". Also trigger for requests like "what's our exposure if X happens", "help me put numbers on this risk", or "I need something for the risk committee".
+license: MIT
+compatibility: Requires Python 3.8+, numpy, scipy, and matplotlib. Designed for Claude Code.
+metadata:
+  version: "1.0"
 ---
 
 # FAIR Risk Scenario Analysis
@@ -9,45 +13,78 @@ Guide banking risk analysts through rigorous, probabilistic FAIR risk scenario a
 
 ## Analysis Workflow
 
-The FAIR analysis follows five sequential phases:
+The FAIR analysis follows five sequential phases (with an optional calibration warm-up):
 
+0. **Analyst Calibration** *(optional)* → Build confidence in estimates before starting
 1. **Scenario Scoping** → Define asset, threat, and effect
 2. **Loss Event Frequency (LEF)** → Estimate TEF × Vulnerability
 3. **Loss Magnitude (LM)** → Quantify primary and secondary losses
 4. **Monte Carlo Simulation** → Run probabilistic analysis
 5. **Documentation** → Generate comprehensive report
 
+**Scope note**: Benchmarks and regulatory references are US-focused (OCC, CFPB, FFIEC, Fedwire). International users should substitute applicable frameworks (DORA, PRA, APRA) and scale regulatory fine ranges accordingly.
+
+## Phase 0: Analyst Calibration (Optional)
+
+Offer this before starting the analysis, especially with analysts new to probabilistic estimation. It takes ~10 minutes and meaningfully improves estimate quality.
+
+1. Present 10 questions with known historical answers (loss events, breach costs, frequency data)
+2. Have the analyst provide 80% confidence interval estimates (low and high bounds)
+3. Score calibration — a well-calibrated analyst should capture the true answer ~80% of the time within their stated 80% intervals
+4. Provide feedback on over-confidence patterns (intervals too narrow) or under-confidence (intervals too wide)
+5. Use the calibration results to set realistic confidence levels throughout the analysis
+
 ## Phase 1: Scenario Scoping
+
+For common banking scenarios, see [`references/scenario-library.md`](references/scenario-library.md) — pre-built templates for ransomware, BEC, insider fraud, DDoS, SWIFT compromise, and more. Use them as starting points or jump straight to scoping a custom scenario.
 
 ### Asset Identification
 
-Present banking asset categories and prompt for selection:
+Classify the target asset using the Basel/BCBS-aligned taxonomy below and prompt the analyst for selection:
 
-- Core banking systems (transaction processing, account management)
-- Payment infrastructure (SWIFT, ACH, wire transfer, card processing)
+**Financial Assets** — Systems that directly hold, process, or transfer monetary value:
+- Core banking systems (transaction processing, account management, general ledger)
+- Payment infrastructure (SWIFT, ACH, Fedwire, card processing, real-time payments)
+- Trading platforms and market data systems (execution, pricing, settlement)
+- Treasury and liquidity management (cash management, funding, interest rate hedging)
+- Loan origination and servicing (mortgage, commercial, consumer credit)
+
+**Physical Assets** — Tangible infrastructure, facilities, and hardware:
+- ATM and branch networks (cash dispensers, kiosks, branch equipment)
+- Data centers and network infrastructure (servers, firewalls, switches, cabling)
+- Physical security systems (vault controls, surveillance, access control)
+
+**Business Services** — Operational processes, applications, and service delivery:
+- Digital banking channels (mobile apps, online banking portals)
+- Fraud detection and transaction monitoring (real-time scoring, AML monitoring)
+- Contact center and CRM (customer service platforms, telephony, IVR)
+- Third-party integrations and APIs (vendor connections, open banking, fintech partnerships)
+- Cloud infrastructure and hosted services (IaaS/PaaS/SaaS workloads)
+
+**Information Assets** — Data repositories, records, models, and knowledge:
 - Customer data repositories (PII, account data, transaction history)
-- Trading platforms and market data systems
-- Risk and Compliance (RSCA, Third-party, Loss Events, Business Resiliency, Model Risk, Issue Management, AML, Sanctions)
-- ATM/branch networks
-- Digital banking channels (mobile, web)
-- Third-party integrations and APIs
+- Risk and compliance data (loss events, model risk, AML/sanctions, issue management)
+- Data warehouses and regulatory reporting (data lakes, BI, CCAR/DFAST, Call Reports)
+- Identity directories and credentials (Active Directory, authentication tokens, cryptographic keys)
 
-Capture: asset name, criticality tier (1-5), data volume/sensitivity, transaction throughput if applicable.
+Capture: asset name, asset category, criticality tier (1-5), data volume/sensitivity, transaction throughput if applicable.
 
 ### Threat Community
 
 Present banking-relevant threat actors with frequency benchmarks:
 
-| Threat Actor       | Typical TEF Range (annual)           | Primary Motivation      |
-| ------------------ | ------------------------------------ | ----------------------- |
-| Nation-state       | 5-20 targeted attempts               | Espionage, disruption   |
-| Organized crime    | 50-500 opportunistic, 10-50 targeted | Financial gain          |
-| Hacktivists        | 10-100 depending on profile          | Reputation damage       |
-| Malicious insider  | 2-20 depending on controls           | Financial gain, revenge |
-| Negligent insider  | 20-200 error events                  | Unintentional           |
-| Third-party/vendor | 5-50 depending on ecosystem          | Varies                  |
+| Threat Actor        | Typical TEF Range (annual)             | Primary Motivation      |
+| ------------------- | -------------------------------------- | ----------------------- |
+| Nation-state        | 5-20 targeted attempts                 | Espionage, disruption   |
+| Organized crime     | 50-500 opportunistic, 10-50 targeted   | Financial gain          |
+| Hacktivists         | 10-100 depending on profile            | Reputation damage       |
+| Malicious insider   | 2-20 depending on controls             | Financial gain, revenge |
+| Negligent insider   | 20-200 error events                    | Unintentional           |
+| Third-party/vendor  | 5-50 depending on ecosystem            | Varies                  |
+| Fraudulent customer | 100-1000+ depending on product mix     | Financial gain          |
+| Former employee     | 1-10 concentrated post-separation      | Revenge, financial gain |
 
-Source benchmarks from: FS-ISAC threat briefings, Verizon DBIR financial sector, ORX loss data.
+Source benchmarks from: FS-ISAC threat briefings, Verizon DBIR financial sector, ORX loss data, CERT Insider Threat Center, FTC consumer fraud data.
 
 ### Threat Type and Effect
 
@@ -145,9 +182,14 @@ For each estimate, offer:
 
 1. **Reference class**: "Similar incidents at comparable institutions resulted in [range]"
 2. **Confidence check**: "Rate your confidence 1-5 in this estimate"
+   - **1** — Little basis; rough order-of-magnitude guess
+   - **2** — Some analogies but significant uncertainty
+   - **3** — Reasonable benchmarks; moderate uncertainty
+   - **4** — Good data or direct experience; low uncertainty
+   - **5** — Strong empirical basis; high confidence
 3. **Decomposition prompt**: "Would it help to break this into components?"
 
-See `references/loss-benchmarks.md` for detailed industry data.
+See [`references/loss-benchmarks.md`](references/loss-benchmarks.md) for detailed industry data.
 
 ## Phase 4: Monte Carlo Simulation
 
@@ -178,7 +220,27 @@ Present results:
 - **Conditional ALE**: Mean/VaR statistics only for years with at least one event
 - **Key Driver Analysis**: Spearman rank correlation identifies which inputs most influence variance (robust to non-linear relationships in the FAIR model)
 
-Use `scripts/fair_simulation.py` to execute simulation and generate visualizations.
+### Running the Simulation
+
+Build a `params.json` from the analyst's estimates and run:
+
+```bash
+python scripts/fair_simulation.py --config params.json --iterations 10000 --seed 42 --output-dir ./results
+```
+
+The config format uses PERT params (`minimum`, `mode`, `maximum`) or lognormal (`p10`, `p90`) for any loss form. Secondary losses require an additional `probability` field (0–1). See [`references/simulation-config.md`](references/simulation-config.md) for the complete schema, full examples, and output field definitions.
+
+### Presenting Results to Different Audiences
+
+Once simulation outputs are available, tailor the framing:
+
+**Executive / board**: Lead with EAL and VaR in dollar terms. "There is a 5% chance we lose more than $X in a single year." Connect to risk appetite and capital buffers. Skip distribution details.
+
+**Risk committee**: Present the loss exceedance curve and the top 2–3 sensitivity drivers from the tornado diagram. Explain what controls would move the numbers and by how much.
+
+**Regulator / audit**: Emphasize methodology rigor — FAIR taxonomy, FFIEC CAT maturity levels, industry benchmark sources, simulation parameters, and reproducibility (seed value). Highlight assumptions and confidence levels explicitly.
+
+**Analyst / model validation**: Walk through the full sensitivity analysis and note which inputs dominate variance. Discuss distribution choice rationale (PERT vs. lognormal) and correlation assumptions.
 
 ## Phase 5: Documentation
 
@@ -212,15 +274,6 @@ Generate comprehensive report using `references/report-template.md`:
 
 Output format: Markdown with embedded charts, convertible to PDF/DOCX.
 
-## Calibration Training Mode
-
-When requested, run calibration exercises before analysis:
-
-1. Present 10 questions with known answers (historical loss events)
-2. Have analyst estimate ranges
-3. Score calibration (should hit ~80% at 80% confidence)
-4. Provide feedback on over/under-confidence patterns
-
 ## Banking-Specific Context
 
 ### Regulatory Framework References
@@ -232,7 +285,7 @@ When requested, run calibration exercises before analysis:
 
 ### Common Scenario Starters
 
-When analyst needs help scoping, offer these common banking scenarios:
+Common banking scenarios covered in [`references/scenario-library.md`](references/scenario-library.md):
 
 - Ransomware on core banking system
 - Business email compromise targeting wire transfers
@@ -241,5 +294,3 @@ When analyst needs help scoping, offer these common banking scenarios:
 - DDoS on digital banking channels
 - ATM jackpotting/malware
 - SWIFT/payment network compromise
-
-See `references/scenario-library.md` for detailed starter scenarios.

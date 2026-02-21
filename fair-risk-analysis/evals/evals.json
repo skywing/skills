@@ -1,0 +1,50 @@
+{
+  "skill_name": "fair-risk-analysis",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to do a FAIR analysis for ransomware hitting our core banking platform. We're a mid-size regional bank. Walk me through it.",
+      "expected_output": "A complete FAIR analysis including scenario scoping, TEF and vulnerability estimates with banking benchmarks, loss magnitude estimates for primary and secondary losses, a params.json config for the simulation script, and a structured report or clear summary of results.",
+      "files": [],
+      "assertions": [
+        "The skill guides the analyst through all five phases: scoping, LEF, loss magnitude, simulation, and documentation",
+        "TEF suggestions reference industry benchmarks (e.g., FS-ISAC, Verizon DBIR) and are appropriate for organized crime / ransomware targeting financial services",
+        "Vulnerability ranges are tied to a control maturity level (Baseline/Evolving/Intermediate/Advanced/Innovative) using FFIEC CAT",
+        "At least three primary loss forms are quantified (e.g., productivity, response, restoration)",
+        "Secondary losses include regulatory fines and reputation with associated probabilities",
+        "A params.json config is produced that is valid for fair_simulation.py",
+        "The analyst is offered calibration inputs (confidence ratings) for their estimates",
+        "The output references or suggests running scripts/fair_simulation.py"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Help me quantify the risk of a malicious insider in our wire payment operations. I want something I can bring to the risk committee.",
+      "expected_output": "A FAIR analysis scoped to insider threat / wire fraud, with calibrated estimates, simulation parameters, and a committee-ready summary with EAL and VaR figures.",
+      "files": [],
+      "assertions": [
+        "The skill correctly identifies the threat community as malicious insider",
+        "TEF estimates are drawn from the insider threat benchmarks in the skill",
+        "Vulnerability assessment covers segregation of duties and monitoring controls",
+        "Loss magnitude covers direct fraud loss, investigation, legal, and remediation",
+        "The output is framed in language appropriate for a risk committee (EAL, VaR, recommendation)",
+        "The skill produces or describes how to produce a params.json for simulation"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "We have a vendor who holds about 2 million customer records. What's our exposure if they get breached? Give me numbers.",
+      "expected_output": "A scoped third-party data breach scenario with quantified loss estimates including notification costs, regulatory fines, and class action exposure, suitable for risk register entry.",
+      "files": [],
+      "assertions": [
+        "The skill scopes the asset as customer PII held by a third party",
+        "Threat community is identified as external attacker via vendor",
+        "Loss magnitude estimates include customer notification, credit monitoring, regulatory fines, and class action settlement",
+        "Estimates are calibrated using the 2M record count (e.g., class action settlement range scales appropriately)",
+        "The response cites relevant regulatory frameworks (OCC, CFPB, state AG)",
+        "A simulation config or clear parameter set is produced",
+        "The skill references loss-benchmarks.md data (per-record costs, settlement ranges)"
+      ]
+    }
+  ]
+}
