@@ -2,6 +2,8 @@
 
 A collection of Agent Skills — folders of instructions, scripts, and resources that AI agents can discover and use to perform tasks more accurately and efficiently.
 
+This repository hosts **multiple, independent skills**. Each top-level directory is a self-contained skill that can be used on its own; they share no runtime dependencies on one another. See [Included Skills](#included-skills) for the current set.
+
 ## Prerequisites
 
 - **Claude Code** (or a compatible agent that supports the Agent Skills format)
@@ -20,8 +22,8 @@ pip install -r <skill-name>/scripts/requirements.txt
 
 1. Clone this repository:
    ```bash
-   git clone <repo-url>
-   cd agent-skills
+   git clone git@github.com:skywing/skills.git
+   cd skills
    ```
 2. Point Claude Code at the skills directory in your project settings or via the `--skills` flag (see Claude Code documentation for your version).
 3. Claude Code loads each skill's `name` and `description` at startup. When a task matches a skill's description, the full `SKILL.md` is activated and any referenced scripts or references are loaded on demand.
@@ -35,19 +37,26 @@ Skills are discovered by scanning for `SKILL.md` files in the top-level director
 ```
 ├── CLAUDE.md                        # Project instructions for Claude Code
 ├── README.md
+├── LICENSE
 ├── .gitignore
-└── fair-risk-analysis/
+└── fair-risk-analysis/              # A skill (one directory per skill)
     ├── SKILL.md
     ├── scripts/
     │   ├── fair_simulation.py
     │   └── requirements.txt
-    └── references/
-        ├── loss-benchmarks.md
-        ├── report-template.md
-        └── scenario-library.md
+    ├── references/
+    │   ├── calibration-questions.md
+    │   ├── loss-benchmarks.md
+    │   ├── report-template.md
+    │   ├── scenario-library.md
+    │   └── simulation-config.md
+    ├── tests/
+    │   └── test_fair_simulation.py
+    └── evals/
+        └── evals.json
 ```
 
-Each top-level directory is a skill. A skill contains at minimum a `SKILL.md` file, with optional `scripts/`, `references/`, and `assets/` directories.
+Each top-level directory is a skill. A skill contains at minimum a `SKILL.md` file, with optional `scripts/`, `references/`, and `assets/` directories. New skills are added as sibling directories alongside `fair-risk-analysis/`.
 
 ## Included Skills
 
