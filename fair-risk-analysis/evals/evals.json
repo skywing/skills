@@ -45,6 +45,33 @@
         "A simulation config or clear parameter set is produced",
         "The skill references loss-benchmarks.md data (per-record costs, settlement ranges)"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "We already ran a ransomware FAIR analysis. Now I want to know: is it worth deploying EDR and network segmentation (drops our vulnerability roughly by half), and separately, what does a $25M cyber insurance policy with a $2M deductible buy us? Show me the numbers for each.",
+      "expected_output": "A treatment analysis that compares baseline vs. a treated (lower-vulnerability) config and models the insurance policy, reporting the change in EAL/VaR/TVaR for each option.",
+      "files": [],
+      "assertions": [
+        "The skill builds a 'treated' config with reduced vulnerability and runs a comparison (e.g., --compare) against the baseline",
+        "It adds an insurance block (per_occurrence_deductible 2000000, per_occurrence_limit 25000000) and reports net-of-insurance EAL/VaR and expected annual recovery",
+        "Results are expressed as deltas or percentage reductions in EAL and VaR (and ideally TVaR)",
+        "The output frames the comparison as cost-benefit input for the risk-treatment section",
+        "The skill uses fair_simulation.py's comparison and/or insurance features rather than hand-waving the revised numbers"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I have three quantified scenarios (ransomware, BEC, insider fraud) and our internal loss database gives me loss-event frequencies directly. Roll them up into a single risk-register view for the operational risk committee.",
+      "expected_output": "A portfolio aggregation of the three scenarios using direct LEF inputs, producing a combined loss distribution and a risk-register table with per-scenario and portfolio-total rows.",
+      "files": [],
+      "assertions": [
+        "The skill uses the direct 'lef' config option rather than forcing TEF x Vulnerability, reflecting the internal loss data",
+        "It prioritizes the institution's internal loss data over generic benchmarks and says so",
+        "It runs a portfolio aggregation (e.g., --portfolio) across the three scenarios",
+        "The output includes combined portfolio EAL/VaR/TVaR and a diversification-benefit figure",
+        "A machine-readable risk-register output (risk_register.csv or rows) is produced for the committee",
+        "The independence assumption of the portfolio aggregation is stated"
+      ]
     }
   ]
 }

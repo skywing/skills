@@ -28,10 +28,12 @@ The FAIR analysis follows five sequential phases (with an optional calibration w
 
 Offer this before starting the analysis, especially with analysts new to probabilistic estimation. It takes ~10 minutes and meaningfully improves estimate quality.
 
-1. Present 10 questions with known historical answers (loss events, breach costs, frequency data)
-2. Have the analyst provide 80% confidence interval estimates (low and high bounds)
-3. Score calibration — a well-calibrated analyst should capture the true answer ~80% of the time within their stated 80% intervals
-4. Provide feedback on over-confidence patterns (intervals too narrow) or under-confidence (intervals too wide)
+Use the ready-made question bank in [`references/calibration-questions.md`](references/calibration-questions.md) — it contains real, sourced questions and answers plus scoring guidance. **Do not invent questions or their "historical answers"** — fabricated answers defeat the purpose of a calibration exercise.
+
+1. Present the questions from the bank (mix of general-knowledge and banking items)
+2. Have the analyst provide 90% confidence interval estimates (low and high bounds)
+3. Score calibration — a well-calibrated analyst captures the true answer ~90% of the time within their stated intervals
+4. Provide feedback on over-confidence patterns (intervals too narrow — the common case) or under-confidence (intervals too wide). Use the "equivalent bet" and "absurdity test" techniques described in the bank.
 5. Use the calibration results to set realistic confidence levels throughout the analysis
 
 ## Phase 1: Scenario Scoping
@@ -98,6 +100,20 @@ Suggest likely attack vectors based on threat community selection.
 ## Phase 2: Loss Event Frequency (LEF)
 
 LEF = Threat Event Frequency (TEF) × Vulnerability
+
+**Prefer the institution's own data.** Generic benchmarks (below and in the
+references) are *starting anchors only*. If the institution has an internal loss
+event database (e.g., ORX submissions, an operational-risk register, prior
+incident records, SOC/SIEM event counts), ask for it and calibrate to it first —
+it almost always beats industry averages. Always tell the user which figures are
+internal vs. benchmark, and flag every benchmark as illustrative and requiring
+validation against a current source. Never present a benchmark number as if it
+were the institution's measured experience.
+
+**Direct LEF option.** When the analyst can estimate Loss Event Frequency
+directly (common when internal loss data exists), skip the TEF × Vulnerability
+decomposition and provide an `lef` PERT block instead — see
+[`references/simulation-config.md`](references/simulation-config.md).
 
 ### Threat Event Frequency (TEF)
 
@@ -214,11 +230,14 @@ Present results:
 
 - **Loss Exceedance Curve**: Probability of exceeding loss thresholds
 - **VaR (95th percentile)**: "There is a 5% chance annual losses exceed $X"
+- **TVaR / Expected Shortfall (95th, 99th)**: Average loss *given* you are in the tail beyond the VaR — the metric a CRO asks for. Always ≥ VaR.
 - **Expected Annual Loss (EAL)**: Mean of distribution
+- **Monte Carlo standard error**: Bootstrap standard error on EAL and VaR, so you can tell whether two runs differ due to signal or sampling noise. If the mean's relative error is large (e.g., >2–3%), raise `--iterations`.
 - **P(Zero Loss Year)**: Probability of no loss events occurring
 - **Mean Event Count**: Average number of loss events per year
 - **Conditional ALE**: Mean/VaR statistics only for years with at least one event
 - **Key Driver Analysis**: Spearman rank correlation identifies which inputs most influence variance (robust to non-linear relationships in the FAIR model)
+- **Risk-register row**: A compact machine-readable summary (`risk_register_row.json`) ready to drop into a risk register
 
 ### Running the Simulation
 
@@ -229,6 +248,25 @@ python scripts/fair_simulation.py --config params.json --iterations 10000 --seed
 ```
 
 The config format uses PERT params (`minimum`, `mode`, `maximum`) or lognormal (`p10`, `p90`) for any loss form. Secondary losses require an additional `probability` field (0–1). See [`references/simulation-config.md`](references/simulation-config.md) for the complete schema, full examples, and output field definitions.
+
+### Risk Treatment Analysis (Phase 5 input)
+
+The engine directly supports the "what would controls/insurance buy us?" question:
+
+- **Insurance / risk transfer**: Add an `insurance` block (per-occurrence deductible, per-occurrence limit, coinsurance, aggregate limit) to a config. The output adds a net-of-insurance loss distribution and expected annual recovery alongside the gross figures.
+- **Control improvement (what-if)**: Build a "treated" config with the improved parameters (e.g., lower vulnerability after deploying EDR) and run a comparison:
+  ```bash
+  python scripts/fair_simulation.py --config baseline.json --compare treated.json --seed 42 --output-dir ./results
+  ```
+  This emits a delta table (EAL, VaR, VaR99, TVaR with % change) you can drop straight into the risk-treatment section, supporting cost-benefit/ROI analysis.
+
+### Portfolio Aggregation
+
+To roll multiple scenarios into a combined view (e.g., populating or rolling up a risk register), pass several configs:
+```bash
+python scripts/fair_simulation.py --portfolio ransomware.json bec.json insider.json --seed 42 --output-dir ./results
+```
+This produces a combined loss-exceedance curve, portfolio EAL/VaR/TVaR, a diversification-benefit figure (sum of standalone VaRs minus portfolio VaR), and a `risk_register.csv` with one row per scenario plus the portfolio total. **Assumption:** scenarios are modeled as independent.
 
 ### Presenting Results to Different Audiences
 

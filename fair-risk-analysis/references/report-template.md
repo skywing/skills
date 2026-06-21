@@ -202,7 +202,10 @@ LEF = TEF × Vulnerability
 | 95th (VaR) | $[X]M |
 | 99th | $[X]M |
 
-**Expected Annual Loss (Mean):** $[X.X]M
+**Expected Annual Loss (Mean):** $[X.X]M (± $[X.X]M Monte Carlo standard error)
+**95th Percentile (VaR):** $[X.X]M
+**TVaR / Expected Shortfall (95th):** $[X.X]M — average loss in the worst 5% of years
+**TVaR / Expected Shortfall (99th):** $[X.X]M
 **P(Zero Loss Year):** [X.X]%
 **Mean Event Count:** [X.X] events/year
 **Conditional Mean (given ≥1 event):** $[X.X]M
@@ -236,8 +239,13 @@ LEF = TEF × Vulnerability
 ### 5.2 Option 2: [Risk Transfer]
 - **Description:** [Insurance or contractual transfer]
 - **Estimated Cost:** $[X]/year premium
-- **Coverage:** $[X]M limit, $[X] deductible
-- **Residual Risk:** $[X]M EAL
+- **Coverage:** $[X]M per-occurrence limit, $[X] deductible, $[X]M aggregate limit, [X]% coinsurance
+- **Gross EAL:** $[X]M → **Net EAL:** $[X]M (from `net_annual_loss_exposure`, modeled via the `insurance` config block)
+- **Expected Annual Recovery:** $[X]M
+- **Residual Risk:** $[X]M EAL, $[X]M net VaR95
+
+> Generate these figures by adding an `insurance` block to the config, or compare
+> control options with `--compare baseline.json treated.json`.
 
 ### 5.3 Option 3: [Risk Acceptance]
 - **Rationale:** [Why acceptance may be appropriate]

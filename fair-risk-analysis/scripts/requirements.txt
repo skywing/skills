@@ -1,0 +1,8 @@
+# Pinned for reproducible regulatory-grade runs. Tested with the versions below;
+# widen the ranges only after re-running tests/ (pytest tests/ -q).
+numpy>=1.24,<3
+scipy>=1.10,<2
+matplotlib>=3.7,<4
+
+# For running the test suite
+pytest>=7.4
